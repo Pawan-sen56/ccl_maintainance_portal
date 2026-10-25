@@ -1,0 +1,163 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Engineer Work Desk | CCL Township{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="bi bi-wrench-adjustable text-warning me-2"></i>{{ dept_name }} Work Desk</h3>
+        <p class="text-muted mb-0">Manage incoming residential repair requests, dispatch technicians, and log materials.</p>
+    </div>
+    <div class="text-end">
+        <span class="badge bg-dark fs-6 px-3 py-2"><i class="bi bi-person-badge me-1"></i> {{ user.get_role_display }}</span>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat bg-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Total Department Tickets</span>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_count }}</h2>
+                </div>
+                <div class="bg-primary-subtle text-primary p-3 rounded-circle fs-4">
+                    <i class="bi bi-folder2-open"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Unassigned</span>
+                    <h2 class="fw-bold mb-0 text-danger">{{ unassigned_count }}</h2>
+                </div>
+                <div class="bg-danger-subtle text-danger p-3 rounded-circle fs-4">
+                    <i class="bi bi-person-x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">In Progress</span>
+                    <h2 class="fw-bold mb-0 text-warning">{{ active_count }}</h2>
+                </div>
+                <div class="bg-warning-subtle text-warning p-3 rounded-circle fs-4">
+                    <i class="bi bi-tools"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Escalated (> 7 Days)</span>
+                    <h2 class="fw-bold mb-0 text-danger">{{ escalated_count }}</h2>
+                </div>
+                <div class="bg-danger-subtle text-danger p-3 rounded-circle fs-4">
+                    <i class="bi bi-alarm"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Table of Complaints -->
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0"><i class="bi bi-inbox text-primary me-2"></i>Active Complaint Queue</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if complaints %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Quarter / Colony</th>
+                            <th>Issue Summary</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Allocated To</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for complaint in complaints %}
+                            <tr {% if complaint.is_escalated %}class="table-danger"{% endif %}>
+                                <td>
+                                    <a href="{% url 'complaint_detail' complaint.ticket_id %}" class="fw-bold text-decoration-none">
+                                        {{ complaint.ticket_id }}
+                                    </a>
+                                    {% if complaint.is_escalated %}
+                                        <span class="badge bg-danger ms-1">Escalated</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ complaint.resident.quarter_no }}</strong><br>
+                                    <small class="text-muted">{{ complaint.resident.get_colony_name_display }}</small>
+                                </td>
+                                <td>
+                                    <span class="d-block fw-semibold">{{ complaint.issue_type }}</span>
+                                    <small class="text-muted">{{ complaint.description|truncatewords:8 }}</small>
+                                </td>
+                                <td>
+                                    {% if complaint.priority == 'EMERGENCY' %}
+                                        <span class="badge bg-danger">Emergency</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary-emphasis">Normal</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if complaint.status == 'SUBMITTED' %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger">Action Needed</span>
+                                    {% elif complaint.status == 'ASSIGNED' %}
+                                        <span class="badge bg-info-subtle text-info-emphasis">Assigned</span>
+                                    {% elif complaint.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-primary">In Progress</span>
+                                    {% elif complaint.status == 'RESOLVED' %}
+                                        <span class="badge bg-warning text-dark">Pending OTP</span>
+                                    {% elif complaint.status == 'CLOSED' %}
+                                        <span class="badge bg-success">Closed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if complaint.allocation %}
+                                        <span class="small fw-semibold">{{ complaint.allocation.technician_name }}</span><br>
+                                        <small class="text-muted">Due: {{ complaint.allocation.target_completion_date|date:"d M" }}</small>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted border">None</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'complaint_detail' complaint.ticket_id %}" class="btn btn-outline-dark">
+                                            View
+                                        </a>
+                                        <a href="{% url 'allocate_job' complaint.ticket_id %}" class="btn btn-warning fw-semibold">
+                                            {% if complaint.allocation %}Edit{% else %}Allocate{% endif %}
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-clipboard-check display-4 text-success mb-2 d-inline-block"></i>
+                <h5>No pending maintenance tickets</h5>
+                <p class="text-muted small">All repair tasks in your department are up to date.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

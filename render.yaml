@@ -1,0 +1,28 @@
+# ====================================================
+# Render Blueprint Specification for CCL Maintenance Portal
+# ====================================================
+
+databases:
+  - name: ccl-db
+    databaseName: ccl_maintenance
+    user: ccl_user
+    plan: free
+
+services:
+  - type: web
+    name: ccl-maintenance-portal
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn ccl_portal.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ccl-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: 3.11.0

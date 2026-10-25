@@ -1,0 +1,63 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Allocate Work Order | Ticket {{ complaint.ticket_id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-dark text-white p-3 rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-person-gear text-warning me-2"></i>Allocate Technician / Contractor</h5>
+                <small class="text-white-50">Ticket: {{ complaint.ticket_id }} &bull; Quarter: {{ complaint.resident.quarter_no }}</small>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-light border mb-4">
+                    <strong>Issue:</strong> {{ complaint.issue_type }}<br>
+                    <small class="text-muted">{{ complaint.description }}</small>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Technician / Contractor Name *</label>
+                        {{ form.technician_name }}
+                        {% if form.technician_name.errors %}<small class="text-danger">{{ form.technician_name.errors }}</small>{% endif %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Technician Mobile No. *</label>
+                            {{ form.technician_phone }}
+                            {% if form.technician_phone.errors %}<small class="text-danger">{{ form.technician_phone.errors }}</small>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Target Completion Date *</label>
+                            {{ form.target_completion_date }}
+                            {% if form.target_completion_date.errors %}<small class="text-danger">{{ form.target_completion_date.errors }}</small>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Materials Issued from Store (Inventory Ledger)</label>
+                        {{ form.materials_issued }}
+                        <small class="text-muted">Record exact items (e.g. 10m PVC Pipe, 1x 16A MCB, 1 Bag Cement) to prevent material leakage.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Work Order Remarks</label>
+                        {{ form.work_remarks }}
+                    </div>
+
+                    <div class="mt-4 text-end">
+                        <a href="{% url 'complaint_detail' complaint.ticket_id %}" class="btn btn-outline-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-warning px-4 fw-bold">
+                            <i class="bi bi-check2-circle me-1"></i> Save & Assign Work Order
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

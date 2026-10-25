@@ -1,0 +1,142 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Resident Dashboard | CCL Township{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="bi bi-house-door text-warning me-2"></i>Resident Dashboard</h3>
+        <p class="text-muted mb-0">
+            {{ user.get_colony_name_display|default:"CCL Colony" }} &bull; Quarter: <strong>{{ user.quarter_no|default:"Not Assigned" }}</strong>
+        </p>
+    </div>
+    <a href="{% url 'create_complaint' %}" class="btn btn-warning fw-bold shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i> Register New Complaint
+    </a>
+</div>
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card card-stat bg-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Total Complaints</span>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_count }}</h2>
+                </div>
+                <div class="bg-primary-subtle text-primary p-3 rounded-circle fs-3">
+                    <i class="bi bi-ticket-perforated"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stat bg-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Active / In Progress</span>
+                    <h2 class="fw-bold mb-0 text-warning">{{ pending_count }}</h2>
+                </div>
+                <div class="bg-warning-subtle text-warning p-3 rounded-circle fs-3">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stat bg-white p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold text-uppercase">Resolved & Closed</span>
+                    <h2 class="fw-bold mb-0 text-success">{{ closed_count }}</h2>
+                </div>
+                <div class="bg-success-subtle text-success p-3 rounded-circle fs-3">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complaints List -->
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-header bg-white py-3 border-0">
+        <h5 class="fw-bold mb-0"><i class="bi bi-list-task me-2 text-primary"></i>My Maintenance Complaints</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if complaints %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Department</th>
+                            <th>Issue Summary</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Lodged On</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for complaint in complaints %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'complaint_detail' complaint.ticket_id %}" class="fw-bold text-decoration-none">
+                                        {{ complaint.ticket_id }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if complaint.department == 'CIVIL' %}bg-info-subtle text-info-emphasis
+                                        {% elif complaint.department == 'ELECTRICAL' %}bg-warning-subtle text-warning-emphasis
+                                        {% else %}bg-primary-subtle text-primary-emphasis{% endif %}">
+                                        {{ complaint.get_department_display }}
+                                    </span>
+                                </td>
+                                <td>{{ complaint.issue_type }}</td>
+                                <td>
+                                    {% if complaint.priority == 'EMERGENCY' %}
+                                        <span class="badge bg-danger">Emergency</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary-emphasis">Normal</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if complaint.status == 'SUBMITTED' %}
+                                        <span class="badge bg-secondary">Submitted</span>
+                                    {% elif complaint.status == 'ASSIGNED' %}
+                                        <span class="badge bg-info text-dark">Assigned</span>
+                                    {% elif complaint.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-primary">In Progress</span>
+                                    {% elif complaint.status == 'RESOLVED' %}
+                                        <span class="badge bg-warning text-dark">Resolved (Pending OTP)</span>
+                                    {% elif complaint.status == 'CLOSED' %}
+                                        <span class="badge bg-success">Closed</span>
+                                    {% endif %}
+                                    {% if complaint.is_escalated %}
+                                        <span class="badge bg-danger ms-1" title="Pending > 7 Days">Escalated</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted small">{{ complaint.created_at|date:"d M Y, h:i A" }}</td>
+                                <td>
+                                    <a href="{% url 'complaint_detail' complaint.ticket_id %}" class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-check-circle display-4 text-success mb-2 d-inline-block"></i>
+                <h5>No Complaints Lodged</h5>
+                <p class="text-muted small">Everything is in order! If you need civil or electrical repairs, click below.</p>
+                <a href="{% url 'create_complaint' %}" class="btn btn-warning fw-bold">Register First Complaint</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

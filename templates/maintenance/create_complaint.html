@@ -1,0 +1,61 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Register Maintenance Complaint | CCL{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-dark text-white p-3 rounded-top-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-tools text-warning me-2"></i>Lodge Maintenance Complaint</h5>
+                <small class="text-white-50">Quarter: {{ user.quarter_no }} ({{ user.get_colony_name_display }})</small>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Department / Service Area *</label>
+                        {{ form.department }}
+                        <small class="text-muted">Select Civil for masonry/carpentry, Electrical for wiring/switchboards, or Water for plumbing/tanks.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Issue Title / Short Summary *</label>
+                        {{ form.issue_type }}
+                        {% if form.issue_type.errors %}<small class="text-danger">{{ form.issue_type.errors }}</small>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Detailed Description *</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<small class="text-danger">{{ form.description.errors }}</small>{% endif %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Priority Level *</label>
+                            {{ form.priority }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Attach Photo (Optional)</label>
+                            {{ form.photo }}
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2 small">
+                        <i class="bi bi-info-circle me-1"></i> Standard complaints are scheduled within <strong>7 days</strong>. Emergency complaints (major water bursts/power failure) are escalated immediately.
+                    </div>
+
+                    <div class="mt-4 text-end">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary me-2">Cancel</a>
+                        <button type="submit" class="btn btn-warning px-4 fw-bold">
+                            <i class="bi bi-send me-1"></i> Submit Complaint
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

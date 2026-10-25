@@ -1,0 +1,56 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Login | CCL Township Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-dark text-white p-4 rounded-top-4 text-center">
+                <i class="bi bi-shield-check display-4 text-warning mb-2 d-inline-block"></i>
+                <h4 class="mb-0 fw-bold">CCL Township Portal</h4>
+                <p class="text-white-50 small mb-0">Central Coalfields Limited (CIL)</p>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if form.errors %}
+                        <div class="alert alert-danger py-2 small">
+                            Invalid Username or Password. Please try again.
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username / EIS Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                            <input type="text" name="username" class="form-control" placeholder="Enter username" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 py-2 fw-bold text-dark mt-2 shadow-sm">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                    </button>
+                </form>
+
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="text-muted small mb-1">New employee or resident?</p>
+                    <a href="{% url 'register' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-person-plus me-1"></i> Register Your Quarter
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

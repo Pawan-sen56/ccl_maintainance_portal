@@ -1,0 +1,162 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Executive Overview | CCL Town Administration{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="bi bi-graph-up-arrow text-warning me-2"></i>Executive Township Maintenance Overview</h3>
+        <p class="text-muted mb-0">High-level oversight of civil & electrical maintenance operations across CCL colonies.</p>
+    </div>
+    <div>
+        <a href="/admin/" target="_blank" class="btn btn-outline-dark fw-semibold">
+            <i class="bi bi-sliders me-1"></i> Full Database Admin
+        </a>
+    </div>
+</div>
+
+<!-- High-Level KPI Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat bg-white p-3 border-start border-primary border-4">
+            <span class="text-muted small fw-semibold text-uppercase">Total Registered Tickets</span>
+            <h2 class="fw-bold mb-0 text-dark">{{ total_count }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-white p-3 border-start border-warning border-4">
+            <span class="text-muted small fw-semibold text-uppercase">Pending / In-Progress</span>
+            <h2 class="fw-bold mb-0 text-warning">{{ pending_count }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-white p-3 border-start border-danger border-4">
+            <span class="text-muted small fw-semibold text-uppercase">SLA Breached (>7 Days)</span>
+            <h2 class="fw-bold mb-0 text-danger">{{ escalated_count }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat bg-white p-3 border-start border-success border-4">
+            <span class="text-muted small fw-semibold text-uppercase">Completed & Closed</span>
+            <h2 class="fw-bold mb-0 text-success">{{ closed_count }}</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Breakdown Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-4 p-3 bg-white h-100">
+            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart text-primary me-2"></i>Department Distribution</h6>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    Civil Maintenance
+                    <span class="badge bg-primary rounded-pill">{{ civil_count }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    Electrical Maintenance
+                    <span class="badge bg-warning text-dark rounded-pill">{{ elec_count }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    Water Supply / Public Health
+                    <span class="badge bg-info rounded-pill">{{ water_count }}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 rounded-4 p-3 bg-white h-100">
+            <h6 class="fw-bold text-danger mb-3">
+                <i class="bi bi-exclamation-octagon-fill text-danger me-2"></i>Escalation Watchlist (Requires Attention)
+            </h6>
+            {% if escalated_complaints %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Quarter</th>
+                                <th>Dept</th>
+                                <th>Issue</th>
+                                <th>Days Pending</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in escalated_complaints %}
+                                <tr>
+                                    <td><strong class="text-danger">{{ c.ticket_id }}</strong></td>
+                                    <td>{{ c.resident.quarter_no }}</td>
+                                    <td>{{ c.get_department_display }}</td>
+                                    <td>{{ c.issue_type }}</td>
+                                    <td><span class="badge bg-danger">Overdue</span></td>
+                                    <td>
+                                        <a href="{% url 'complaint_detail' c.ticket_id %}" class="btn btn-xs btn-outline-danger">Review</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-success small mb-0"><i class="bi bi-check-circle me-1"></i> No SLA breaches currently recorded. All tickets are within the 7-day window.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- All Complaints Master Table -->
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-header bg-white py-3 border-0">
+        <h5 class="fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>All Township Maintenance Records</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ticket ID</th>
+                        <th>Colony & Quarter</th>
+                        <th>Dept</th>
+                        <th>Issue</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in complaints %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'complaint_detail' c.ticket_id %}" class="fw-bold text-decoration-none">
+                                    {{ c.ticket_id }}
+                                </a>
+                            </td>
+                            <td>{{ c.resident.quarter_no }} ({{ c.resident.get_colony_name_display }})</td>
+                            <td>{{ c.get_department_display }}</td>
+                            <td>{{ c.issue_type }}</td>
+                            <td>
+                                {% if c.status == 'CLOSED' %}
+                                    <span class="badge bg-success">Closed</span>
+                                {% elif c.is_escalated %}
+                                    <span class="badge bg-danger">Escalated</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ c.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">{{ c.created_at|date:"d M Y" }}</td>
+                            <td>
+                                <a href="{% url 'complaint_detail' c.ticket_id %}" class="btn btn-sm btn-outline-primary">View</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No tickets registered yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
