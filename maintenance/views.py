@@ -116,16 +116,14 @@ def allocate_job(request, ticket_id):
         messages.error(request, "Permission denied.")
         return redirect('dashboard')
 
+    instance = getattr(complaint, 'allocation', None)
+
     if request.method == 'POST':
-        form = JobAllocationForm(request.POST)
+        form = JobAllocationForm(request.POST, instance=instance)
         if form.is_valid():
-            allocation, created = JobAllocation.objects.get_or_create(complaint=complaint)
+            allocation = form.save(commit=False)
+            allocation.complaint = complaint
             allocation.assigned_by_je = request.user
-            allocation.technician_name = form.cleaned_data['technician_name']
-            allocation.technician_phone = form.cleaned_data['technician_phone']
-            allocation.target_completion_date = form.cleaned_data['target_completion_date']
-            allocation.materials_issued = form.cleaned_data['materials_issued']
-            allocation.work_remarks = form.cleaned_data['work_remarks']
             allocation.save()
 
             complaint.status = 'ASSIGNED'
@@ -133,18 +131,7 @@ def allocate_job(request, ticket_id):
             messages.success(request, f"Job allocated to {allocation.technician_name} for Ticket {complaint.ticket_id}")
             return redirect('complaint_detail', ticket_id=complaint.ticket_id)
     else:
-        # Pre-fill if already exists
-        initial_data = {}
-        if hasattr(complaint, 'allocation'):
-            alloc = complaint.allocation
-            initial_data = {
-                'technician_name': alloc.technician_name,
-                'technician_phone': alloc.technician_phone,
-                'target_completion_date': alloc.target_completion_date,
-                'materials_issued': alloc.materials_issued,
-                'work_remarks': alloc.work_remarks,
-            }
-        form = JobAllocationForm(initial=initial_data)
+        form = JobAllocationForm(instance=instance)
 
     return render(request, 'maintenance/allocate_job.html', {'form': form, 'complaint': complaint})
 
@@ -183,10 +170,12 @@ def verify_and_close(request, ticket_id):
             complaint.save()
 
             if rating:
-                Feedback.objects.create(
+                Feedback.objects.update_or_create(
                     complaint=complaint,
-                    rating=int(rating),
-                    comments=comments
+                    defaults={
+                        'rating': int(rating),
+                        'comments': comments,
+                    }
                 )
 
             messages.success(request, f"Ticket {complaint.ticket_id} verified and closed successfully!")
