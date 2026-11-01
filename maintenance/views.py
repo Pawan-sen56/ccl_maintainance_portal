@@ -18,16 +18,8 @@ from .forms import (
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
-    if request.method == 'POST':
-        form = CustomUserRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, f"Welcome to CCL Township Portal, {user.first_name or user.username}!")
-            return redirect('dashboard')
-    else:
-        form = CustomUserRegistrationForm()
-    return render(request, 'maintenance/register.html', {'form': form})
+    messages.info(request, "Employee quarter accounts are managed by Town Administration. Please sign in with your credentials.")
+    return redirect('login')
 
 
 @login_required
